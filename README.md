@@ -3,7 +3,7 @@
 FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
 (Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
 
-**Status:** v0.1.3 — from/to format documented + enforced; 24 tests passing. Local only;
+**Status:** v0.1.4 — example clients added + live-tested; 24 tests passing. Local only;
 pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
@@ -103,6 +103,25 @@ uvicorn app.main:app --reload
 pip install -r dev-requirements.txt   # or: uv pip install ...
 pytest
 ```
+
+## Examples
+
+Runnable client demos in `examples/` — only dependency is `requests`:
+
+- `examples/ingest_reading.py` — post a single reading immediately (the 1/min case),
+  with commented bare-array flush and idempotency demo
+- `examples/query_readings.py` — call `/readings/latest`, `/readings` (range)
+  and `/readings/summary`
+
+```bash
+pip install requests
+INGEST_API_KEY=<key> python examples/ingest_reading.py
+QUERY_API_KEY=<key> python examples/query_readings.py
+# POWERPAL_URL defaults to http://localhost:8000
+```
+
+Both were live-tested end-to-end against the compose stack (2026-10-12):
+ingest accepted, then latest / range / summary all returned the posted reading.
 
 ## Backups
 

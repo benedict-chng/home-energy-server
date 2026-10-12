@@ -4,6 +4,8 @@ Dated log of every step taken on this project. Newest first.
 
 ## 2026-10-12 (afternoon)
 
+- **17:34 — Example clients added (Ben's request) and live-tested end-to-end.** New `examples/`: `ingest_reading.py` (single-object immediate post, commented bare-array flush + idempotency demo) and `query_readings.py` (`/latest`, `/readings` range, `/readings/summary`), using `requests` with env-based config (`POWERPAL_URL`, `INGEST_API_KEY`, `QUERY_API_KEY`). Verified against a real compose stack spun up on this host: healthz/readyz OK → ingest `{'received': 1, 'accepted': 1, 'duplicates': 0}` → latest, range and summary all returned the posted reading. That also proves the Timescale init SQL and the `time_bucket` summary path work on a real DB, not just unit tests. Throwaway stack, named volume and test `.env` torn down afterwards. Suite unchanged: **24 passed**. Committed as v0.1.4.
+
 - **17:28 — `from`/`to` format question (Ben) → gap found and closed:** query params weren't enforcing the UTC-offset rule that ingest has. Added `_require_utc_offset` to `/readings` and `/readings/summary` — naive timestamps now 422 with a pointer to the expected format. README documents the format + the raw-URL `+`-means-space gotcha (URL-encode as `%2B` or use `Z`). Suite: **24 passed**. Committed as v0.1.3.
 
 - **17:26 — `GET /api/v1/readings/latest` added (Ben's request):** returns just the most recent reading — no from/to/limit/order needed. 404 with a clear message when the DB is still empty. Query-key auth applies. Suite: **22 passed**. Committed as v0.1.2.
