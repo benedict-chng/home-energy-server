@@ -35,6 +35,13 @@ Each decision: what we chose, why, and what we rejected.
 - `GET /api/v1/energy/overview` = two `time_bucket` aggregations FULL OUTER JOINed on bucket — one call feeds the dashboard's superimposed chart: `consumed_kwh` + `avg_grid_watts` (grid) vs `avg_solar_watts` (solar, watts-only schema). If solar kWh per bucket is ever needed it can be derived (avg_watts × bucket duration) or the schema extended.
 - Metering nuance: PowerPal reads net grid import (solar sits behind the meter), so midday the consumption line dips — the gap vs generation is self-consumed solar.
 
+## D10 — Deployment: VPS (like wallabag), Cloudflare tunnel for query, Tailscale for ingest (20:42)
+
+- Stack runs on the gateway VPS alongside wallabag — `docker compose up -d`, `restart: unless-stopped`, named volume.
+- **Query (external):** exposed via the existing remotely-managed cloudflared tunnel — Ben adds the public hostname in the CF dashboard, service `http://home-energy-server-app-1:8000` (app joined `wallabag_default` network for container-DNS reachability). API keys remain the auth layer.
+- **Ingest (internal):** PowerPal Pi + Fronius poller live on the home LAN, so "LAN ingest" needs a virtual LAN to reach the VPS — **Tailscale** (Pi client + VPS sidecar container; app rebinds to the tailnet IP). Until that lands, ingest is bound to `127.0.0.1` and unreachable remotely (safe default). Cloudflare WARP is the all-Cloudflare alternative if Ben prefers.
+- Nightly backup cron installed on the VPS (`15 3 * * *` server TZ), wallabag's existing cron entry preserved.
+
 ## D5 — Step documentation: this repo
 
 - Every step logged in `docs/BUILDLOG.md` (dated, newest first), decisions in this file, one logical commit per step.

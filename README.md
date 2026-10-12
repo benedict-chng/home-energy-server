@@ -4,8 +4,8 @@ FastAPI server that receives home energy readings — grid consumption from a
 PowerPal BLE bridge (Raspberry Pi) and solar generation from a Fronius inverter —
 stores them in Postgres/TimescaleDB, and exposes query APIs.
 
-**Status:** v0.2.2 — renamed to home-energy-server; 45 tests passing + live-tested. Local only;
-pushed to remote once Ben says go.
+**Status:** v0.2.2 — LIVE on the gateway VPS (2026-10-12); 45 tests passing. Query exposure via
+Cloudflare tunnel pending hostname; ingest awaits Tailscale hop from the home LAN.
 
 ## Data schema (as specified, all fields mandatory)
 

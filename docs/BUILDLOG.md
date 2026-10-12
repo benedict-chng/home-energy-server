@@ -4,6 +4,8 @@ Dated log of every step taken on this project. Newest first.
 
 ## 2026-10-12 (afternoon)
 
+- **20:42 — DEPLOYED on the VPS (Ben's call: host like wallabag).** Real `.env` generated (`APP_BIND=127.0.0.1` — ingest unreachable remotely until the Tailscale hop lands). Stack up: db healthy, app `readyz` OK. Smoke-tested with production keys: grid + solar ingest accepted, `/energy/overview` returned one aligned bucket. App container joined `wallabag_default` network so cloudflared can target `home-energy-server-app-1:8000` (tunnel is remotely-managed — hostname routes are added in Ben's CF dashboard). Backup cron installed (`15 3 * * *`, wallabag's existing cron preserved). Pending: CF dashboard hostname (Ben), Tailscale virtual LAN for ingest (Pi + VPS sidecar).
+
 - **19:16 — Remote set + pushed to GitHub (Ben supplied repo URL + PAT).** `origin` = github.com/benedict-chng/home-energy-server.git; PAT supplied via chat, embedded only in the remote URL inside local `.git/config` (never in any tracked file); pushed `main` with upstream tracking.
 
 - **19:08 — Project renamed: `powerpal-server` → `home-energy-server` (Ben's call) — v0.2.2.** It now ingests two sources, so the name generalised. Changed: directory, pyproject name/description, FastAPI title ("Home Energy Server"), DB user/db defaults (`homeenergy`) across compose + .env.example + config fallback + tests conftest, backup dump prefix (`home-energy-*.sql.gz`), example env var `POWERPAL_URL` → `ENERGY_SERVER_URL`. Kept: table names (`readings`, `solar_readings`), endpoint paths, device names (PowerPal, Fronius) where they describe data sources, and this log's historical entries. Venv recreated at the new path. Suite: **45 passed**. Committed as v0.2.2.
