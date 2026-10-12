@@ -23,7 +23,7 @@ async def lifespan(app):
 def create_app() -> "FastAPI":
     from fastapi import FastAPI
 
-    app = FastAPI(title="PowerPal Server", version="0.2.1", lifespan=lifespan)
+    app = FastAPI(title="Home Energy Server", version="0.2.2", lifespan=lifespan)
 
     @app.get("/healthz", tags=["ops"])
     async def healthz() -> dict:

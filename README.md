@@ -1,9 +1,10 @@
-# powerpal-server
+# home-energy-server
 
-FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
-(Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
+FastAPI server that receives home energy readings — grid consumption from a
+PowerPal BLE bridge (Raspberry Pi) and solar generation from a Fronius inverter —
+stores them in Postgres/TimescaleDB, and exposes query APIs.
 
-**Status:** v0.2.1 — solar two-field schema (Ben's correction); 45 tests passing + live-tested. Local only;
+**Status:** v0.2.2 — renamed to home-energy-server; 45 tests passing + live-tested. Local only;
 pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
@@ -127,7 +128,7 @@ Local dev without Docker: create the DB, run `db/init/01_schema.sql` (add
 
 ```bash
 pip install -r requirements.txt
-DATABASE_URL=postgresql+asyncpg://powerpal:pass@localhost:5432/powerpal \
+DATABASE_URL=postgresql+asyncpg://homeenergy:homeenergy@localhost:5432/homeenergy \
 INGEST_API_KEY=... QUERY_API_KEY=... \
 uvicorn app.main:app --reload
 ```
@@ -152,7 +153,7 @@ Runnable client demos in `examples/` — only dependency is `requests`:
 pip install requests
 INGEST_API_KEY=<key> python examples/ingest_reading.py
 QUERY_API_KEY=<key> python examples/query_readings.py
-# POWERPAL_URL defaults to http://localhost:8000
+# ENERGY_SERVER_URL defaults to http://localhost:8000
 ```
 
 Both were live-tested end-to-end against the compose stack (2026-10-12):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Post power readings to the PowerPal ingest endpoint (internal network only).
+"""Post power readings to the home-energy-server ingest endpoint (internal network only).
 
 The normal case: one reading per minute, posted immediately as a single
 JSON object. A bare-array flush for outage catch-up is shown at the bottom.
@@ -8,7 +8,7 @@ JSON object. A bare-array flush for outage catch-up is shown at the bottom.
     INGEST_API_KEY=<key> python examples/ingest_reading.py
 
 Environment:
-    POWERPAL_URL    server base URL (default http://localhost:8000)
+    ENERGY_SERVER_URL    server base URL (default http://localhost:8000)
     INGEST_API_KEY  required — the ingest key from the server's .env
 """
 
@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 import requests
 
-SERVER = os.environ.get("POWERPAL_URL", "http://localhost:8000")
+SERVER = os.environ.get("ENERGY_SERVER_URL", "http://localhost:8000")
 API_KEY = os.environ.get("INGEST_API_KEY", "")
 
 

@@ -40,6 +40,12 @@ Each decision: what we chose, why, and what we rejected.
 - Every step logged in `docs/BUILDLOG.md` (dated, newest first), decisions in this file, one logical commit per step.
 - Hosting: **local only for now** — Ben pushes to remote himself when the project reaches a stage he's happy with.
 
+## D9 — Project renamed: `powerpal-server` → `home-energy-server` (19:08)
+
+- The server ingests two sources (PowerPal grid + Fronius solar), so the project name generalised. Ben's call.
+- Changed: directory, pyproject name/description, app title ("Home Energy Server"), DB user/db defaults (`homeenergy`), backup dump prefix (`home-energy-*.sql.gz`), example env var `POWERPAL_URL` → `ENERGY_SERVER_URL`.
+- Kept: table names (`readings`, `solar_readings`), endpoint paths, and device names (PowerPal, Fronius) wherever they describe the data source rather than the project. Compose volume inherits the new project prefix automatically (directory-derived).
+
 ## D6 — Data schema (Ben-specified, 2026-10-12)
 
 - Exactly four mandatory fields: `time` (timestamptz), `pulses` (integer), `kwh` (double precision), `average_watts` (double precision). Nothing added, nothing optional.

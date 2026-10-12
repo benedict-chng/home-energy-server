@@ -5,7 +5,7 @@
     QUERY_API_KEY=<key> python examples/query_readings.py
 
 Environment:
-    POWERPAL_URL    server base URL (default http://localhost:8000)
+    ENERGY_SERVER_URL    server base URL (default http://localhost:8000)
     QUERY_API_KEY   required — the (separate) read-only key from the server's .env
 """
 
@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-SERVER = os.environ.get("POWERPAL_URL", "http://localhost:8000")
+SERVER = os.environ.get("ENERGY_SERVER_URL", "http://localhost:8000")
 API_KEY = os.environ.get("QUERY_API_KEY", "")
 HEADERS = {"X-API-Key": API_KEY}
 

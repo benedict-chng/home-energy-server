@@ -1,7 +1,7 @@
 [project]
-name = "powerpal-server"
-version = "0.2.1"
-description = "FastAPI server receiving PowerPal power-usage readings and exposing a query API"
+name = "home-energy-server"
+version = "0.2.2"
+description = "FastAPI server receiving home energy readings (PowerPal grid + Fronius solar) and exposing a query API"
 requires-python = ">=3.12"
 
 [tool.pytest.ini_options]
