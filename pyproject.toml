@@ -1,0 +1,9 @@
+[project]
+name = "powerpal-server"
+version = "0.1.0"
+description = "FastAPI server receiving PowerPal power-usage readings and exposing a query API"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

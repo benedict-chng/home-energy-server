@@ -30,3 +30,16 @@ Each decision: what we chose, why, and what we rejected.
 ## D5 — Step documentation: this repo
 
 - Every step logged in `docs/BUILDLOG.md` (dated, newest first), decisions in this file, one logical commit per step.
+- Hosting: **local only for now** — Ben pushes to remote himself when the project reaches a stage he's happy with.
+
+## D6 — Data schema (Ben-specified, 2026-10-12)
+
+- Exactly four mandatory fields: `time` (timestamptz), `pulses` (integer), `kwh` (double precision), `average_watts` (double precision). Nothing added, nothing optional.
+- `time` is the primary key → ingest is idempotent (`ON CONFLICT DO NOTHING`); bridge retries after a network blip can't create duplicates.
+- Single-device design: no `device_id` column until a second meter actually exists. Revisit then.
+- API contract enforced in Pydantic: ISO 8601 **with UTC offset required** (naive timestamps → 422 — avoids silently misinterpreting Melbourne local time as UTC), stored normalised to UTC; all values `>= 0`; unknown fields rejected (catches bridge typos); batches of 1–1000.
+
+## D7 — Migrations: bootstrap SQL now, Alembic deferred
+
+- Fresh deploys bootstrap via `db/init/*.sql` mounted at Postgres first-init; all Timescale-specific DDL (hypertable, compression, retention, continuous aggregate) lives there where it runs natively.
+- Alembic is deliberately deferred until the first post-launch schema change — an empty migrations chain is pure overhead for v1. Documented so the shift is conscious, not forgotten.

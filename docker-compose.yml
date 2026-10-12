@@ -1,0 +1,39 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-powerpal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-powerpal}
+    volumes:
+      # Named volume: survives restarts, upgrades, reboots. Never `compose down -v`.
+      - timescaledb_data:/var/lib/postgresql/data
+      # Runs once on first init (empty data dir): base schema + Timescale policies
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # DB stays loopback-only on the host; app reaches it over the compose network
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-powerpal} -d ${POSTGRES_DB:-powerpal}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-powerpal}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-powerpal}
+      INGEST_API_KEY: ${INGEST_API_KEY:?set INGEST_API_KEY in .env}
+      QUERY_API_KEY: ${QUERY_API_KEY:?set QUERY_API_KEY in .env}
+    ports:
+      # Ingest must be reachable from the Pi on the LAN. Restrict with APP_BIND
+      # (e.g. your LAN IP) or a host firewall rule; ingest still requires its API key.
+      - "${APP_BIND:-0.0.0.0}:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  timescaledb_data:
