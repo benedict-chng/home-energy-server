@@ -4,6 +4,8 @@ Dated log of every step taken on this project. Newest first.
 
 ## 2026-10-12 (afternoon)
 
+- **20:50 — Plot twist: "the VPS" is Ben's home laptop (Dell Latitude, Doncaster) — same LAN as the PowerPal Pi.** Rebound ingest from loopback to the LAN IP (`APP_BIND=192.168.68.141`, host port 8000) and recreated the app container — verified healthz/readyz on the LAN address. The Pi can now POST ingest over the home LAN directly; no Tailscale/WARP needed (D10 revised). Caveats noted: DHCP reservation recommended for the laptop so the IP stays put; ufw status unverified (sudo) — if the Pi can't connect, allow port 8000 on the LAN interface. Query exposure via CF dashboard hostname still pending.
+
 - **20:42 — DEPLOYED on the VPS (Ben's call: host like wallabag).** Real `.env` generated (`APP_BIND=127.0.0.1` — ingest unreachable remotely until the Tailscale hop lands). Stack up: db healthy, app `readyz` OK. Smoke-tested with production keys: grid + solar ingest accepted, `/energy/overview` returned one aligned bucket. App container joined `wallabag_default` network so cloudflared can target `home-energy-server-app-1:8000` (tunnel is remotely-managed — hostname routes are added in Ben's CF dashboard). Backup cron installed (`15 3 * * *`, wallabag's existing cron preserved). Pending: CF dashboard hostname (Ben), Tailscale virtual LAN for ingest (Pi + VPS sidecar).
 
 - **19:16 — Remote set + pushed to GitHub (Ben supplied repo URL + PAT).** `origin` = github.com/benedict-chng/home-energy-server.git; PAT supplied via chat, embedded only in the remote URL inside local `.git/config` (never in any tracked file); pushed `main` with upstream tracking.

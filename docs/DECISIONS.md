@@ -35,11 +35,11 @@ Each decision: what we chose, why, and what we rejected.
 - `GET /api/v1/energy/overview` = two `time_bucket` aggregations FULL OUTER JOINed on bucket — one call feeds the dashboard's superimposed chart: `consumed_kwh` + `avg_grid_watts` (grid) vs `avg_solar_watts` (solar, watts-only schema). If solar kWh per bucket is ever needed it can be derived (avg_watts × bucket duration) or the schema extended.
 - Metering nuance: PowerPal reads net grid import (solar sits behind the meter), so midday the consumption line dips — the gap vs generation is self-consumed solar.
 
-## D10 — Deployment: VPS (like wallabag), Cloudflare tunnel for query, Tailscale for ingest (20:42)
+## D10 — Deployment: home laptop (the "VPS"), Cloudflare tunnel for query, LAN ingest (20:42, revised 20:50)
 
-- Stack runs on the gateway VPS alongside wallabag — `docker compose up -d`, `restart: unless-stopped`, named volume.
+- Stack runs on Ben's home laptop — a Dell Latitude in Doncaster (the "VPS"), alongside wallabag — `docker compose up -d`, `restart: unless-stopped`, named volume. Bonus: laptop battery rides out short power blips.
 - **Query (external):** exposed via the existing remotely-managed cloudflared tunnel — Ben adds the public hostname in the CF dashboard, service `http://home-energy-server-app-1:8000` (app joined `wallabag_default` network for container-DNS reachability). API keys remain the auth layer.
-- **Ingest (internal):** PowerPal Pi + Fronius poller live on the home LAN, so "LAN ingest" needs a virtual LAN to reach the VPS — **Tailscale** (Pi client + VPS sidecar container; app rebinds to the tailnet IP). Until that lands, ingest is bound to `127.0.0.1` and unreachable remotely (safe default). Cloudflare WARP is the all-Cloudflare alternative if Ben prefers.
+- **Ingest (internal):** the laptop and the PowerPal Pi share the home LAN, so no tunnel hop at all — ingest is bound directly to the LAN IP (`APP_BIND=192.168.68.141`, host port 8000); the Pi POSTs over the home network and traffic never leaves the house. Recommend a DHCP reservation for the laptop so the IP stays put.
 - Nightly backup cron installed on the VPS (`15 3 * * *` server TZ), wallabag's existing cron entry preserved.
 
 ## D5 — Step documentation: this repo
