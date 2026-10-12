@@ -27,6 +27,14 @@ Each decision: what we chose, why, and what we rejected.
 - Query endpoint reachable over tailnet; nothing published to the internet. Public exposure (Caddy + TLS + API key) only if a third-party client needs it.
 - Status: **awaiting Ben's call.**
 
+## D8 — Solar (Fronius): separate table + endpoints + combined overview
+
+- `solar_readings` hypertable mirrors grid discipline: `time` (timestamptz PK → idempotent retries), `power_watts`, `energy_kwh` — all mandatory, `>= 0`, naive timestamps rejected. No `pulses` column — solar has none. Own compression / 12-month retention / hourly rollup.
+- Endpoints are **purely additive** under `/api/v1/solar/*` — the grid `/api/v1/readings*` contract is unchanged, so the existing PowerPal bridge needs zero changes (Ben's question, 18:14).
+- Same ingest/query API keys reused (both bridges live on the trusted LAN); per-source keys are a later option if he wants independent revocation.
+- `GET /api/v1/energy/overview` = two `time_bucket` aggregations FULL OUTER JOINed on bucket — one call feeds the dashboard's superimposed consumption/generation chart; self-consumption % falls out of the same data later.
+- Metering nuance: PowerPal reads net grid import (solar sits behind the meter), so midday the consumption line dips — the gap vs generation is self-consumed solar.
+
 ## D5 — Step documentation: this repo
 
 - Every step logged in `docs/BUILDLOG.md` (dated, newest first), decisions in this file, one logical commit per step.

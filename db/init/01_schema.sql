@@ -9,3 +9,13 @@ CREATE TABLE IF NOT EXISTS readings (
     average_watts DOUBLE PRECISION NOT NULL CHECK (average_watts >= 0),
     CONSTRAINT readings_pkey PRIMARY KEY (time)
 );
+
+-- Solar (Fronius) readings — same discipline as grid: all fields mandatory,
+-- time is the PK -> idempotent retries.
+
+CREATE TABLE IF NOT EXISTS solar_readings (
+    time        TIMESTAMP WITH TIME ZONE NOT NULL,
+    power_watts DOUBLE PRECISION NOT NULL CHECK (power_watts >= 0),
+    energy_kwh  DOUBLE PRECISION NOT NULL CHECK (energy_kwh >= 0),
+    CONSTRAINT solar_readings_pkey PRIMARY KEY (time)
+);

@@ -1,8 +1,10 @@
 """Pydantic schemas for the readings API. All fields mandatory per spec."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from app.schemas.common import accept_single_object_or_list, require_utc_offset
 
 
 class ReadingIn(BaseModel):
@@ -16,11 +18,7 @@ class ReadingIn(BaseModel):
     @field_validator("time")
     @classmethod
     def _require_utc_offset(cls, v: datetime) -> datetime:
-        if v.tzinfo is None or v.tzinfo.utcoffset(v) is None:
-            raise ValueError(
-                "time must be ISO 8601 with a UTC offset, e.g. 2026-10-12T06:58:00+10:00"
-            )
-        return v.astimezone(timezone.utc)
+        return require_utc_offset(v)
 
 
 class IngestPayload(BaseModel):
@@ -40,12 +38,8 @@ class IngestPayload(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _accept_single_object_or_list(cls, data: object) -> object:
-        if isinstance(data, dict) and "readings" not in data:
-            return {"readings": [data]}
-        if isinstance(data, list):
-            return {"readings": data}
-        return data
+    def _normalise_input(cls, data: object) -> object:
+        return accept_single_object_or_list(data)
 
 
 class ReadingOut(BaseModel):

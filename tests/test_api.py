@@ -103,3 +103,70 @@ def test_summary_naive_from_is_422():
         headers=QUERY,
     )
     assert r.status_code == 422
+
+
+# --- Solar endpoints (Fronius) — additive, grid endpoints untouched ---
+
+SOLAR = {
+    "time": "2026-10-12T12:00:00+10:00",
+    "power_watts": 2450.5,
+    "energy_kwh": 0.24,
+}
+
+
+def test_solar_ingest_requires_key():
+    assert client.post("/api/v1/solar/readings", json=SOLAR).status_code == 401
+
+
+def test_solar_ingest_wrong_key():
+    r = client.post("/api/v1/solar/readings", json=SOLAR, headers={"X-API-Key": "***"})
+    assert r.status_code == 401
+
+
+def test_solar_ingest_invalid_is_422():
+    body = {**SOLAR, "time": "2026-10-12T12:00:00"}  # naive timestamp
+    r = client.post("/api/v1/solar/readings", json=body, headers=INGEST)
+    assert r.status_code == 422
+
+
+def test_solar_ingest_bare_list_invalid_is_422():
+    r = client.post(
+        "/api/v1/solar/readings",
+        json=[{**SOLAR, "energy_kwh": -1}],
+        headers=INGEST,
+    )
+    assert r.status_code == 422
+
+
+def test_solar_query_requires_key():
+    assert client.get("/api/v1/solar/readings").status_code == 401
+
+
+def test_solar_latest_requires_key():
+    assert client.get("/api/v1/solar/readings/latest").status_code == 401
+
+
+def test_solar_summary_requires_key():
+    assert client.get("/api/v1/solar/readings/summary").status_code == 401
+
+
+def test_solar_readings_naive_from_is_422():
+    r = client.get(
+        "/api/v1/solar/readings",
+        params={"from": "2026-10-12T00:00:00"},
+        headers=QUERY,
+    )
+    assert r.status_code == 422
+
+
+def test_energy_overview_requires_key():
+    assert client.get("/api/v1/energy/overview").status_code == 401
+
+
+def test_energy_overview_naive_from_is_422():
+    r = client.get(
+        "/api/v1/energy/overview",
+        params={"from": "2026-10-12T00:00:00"},
+        headers=QUERY,
+    )
+    assert r.status_code == 422

@@ -8,7 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import engine, get_session
 from app.ingest.router import router as ingest_router
+from app.ingest.solar import router as solar_ingest_router
+from app.query.energy import router as energy_router
 from app.query.router import router as query_router
+from app.query.solar import router as solar_query_router
 
 
 @asynccontextmanager
@@ -20,7 +23,7 @@ async def lifespan(app):
 def create_app() -> "FastAPI":
     from fastapi import FastAPI
 
-    app = FastAPI(title="PowerPal Server", version="0.1.4", lifespan=lifespan)
+    app = FastAPI(title="PowerPal Server", version="0.2.0", lifespan=lifespan)
 
     @app.get("/healthz", tags=["ops"])
     async def healthz() -> dict:
@@ -33,6 +36,9 @@ def create_app() -> "FastAPI":
 
     app.include_router(ingest_router)
     app.include_router(query_router)
+    app.include_router(solar_ingest_router)
+    app.include_router(solar_query_router)
+    app.include_router(energy_router)
     return app
 
 

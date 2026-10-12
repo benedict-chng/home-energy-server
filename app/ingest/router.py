@@ -1,11 +1,11 @@
 """Ingest endpoint — internal only. Batch + idempotent."""
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import require_ingest_key
 from app.core.db import get_session
+from app.ingest.common import insert_idempotent
 from app.models.reading import Reading
 from app.schemas.reading import IngestPayload
 
@@ -35,13 +35,4 @@ async def ingest_readings(
         }
         for r in payload.readings
     ]
-    stmt = (
-        pg_insert(Reading)
-        .values(rows)
-        .on_conflict_do_nothing(index_elements=[Reading.time])
-        .returning(Reading.time)
-    )
-    result = await session.execute(stmt)
-    accepted = len(result.all())
-    await session.commit()
-    return {"received": len(rows), "accepted": accepted, "duplicates": len(rows) - accepted}
+    return await insert_idempotent(session, Reading, rows)

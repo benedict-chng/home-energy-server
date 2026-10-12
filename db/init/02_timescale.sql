@@ -33,5 +33,25 @@ BEGIN
             start_offset      => INTERVAL '3 hours',
             end_offset        => INTERVAL '1 hour',
             schedule_interval => INTERVAL '30 minutes');
+
+        -- Solar: same treatment as grid (separate hypertable per measurement type)
+        PERFORM create_hypertable('solar_readings', 'time', if_not_exists => TRUE, migrate_data => TRUE);
+        ALTER TABLE solar_readings SET (timescaledb.compress);
+        PERFORM add_compression_policy('solar_readings', INTERVAL '7 days');
+        PERFORM add_retention_policy('solar_readings', INTERVAL '12 months');
+
+        CREATE MATERIALIZED VIEW IF NOT EXISTS solar_readings_hourly
+        WITH (timescaledb.continuous) AS
+        SELECT time_bucket(INTERVAL '1 hour', time) AS bucket,
+               sum(energy_kwh)                      AS energy_kwh,
+               avg(power_watts)                     AS avg_watts
+        FROM solar_readings
+        GROUP BY bucket
+        WITH NO DATA;
+
+        PERFORM add_continuous_aggregate_policy('solar_readings_hourly',
+            start_offset      => INTERVAL '3 hours',
+            end_offset        => INTERVAL '1 hour',
+            schedule_interval => INTERVAL '30 minutes');
     END IF;
 END $$;
