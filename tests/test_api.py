@@ -44,6 +44,30 @@ def test_ingest_invalid_payload_is_422():
     assert r.status_code == 422
 
 
+def test_ingest_single_object_invalid_is_422():
+    # Immediate-post shape (single object, no wrapper)
+    body = {
+        "time": "2026-10-12T06:58:00",
+        "pulses": 12,
+        "kwh": 0.012,
+        "average_watts": 230.5,
+    }
+    r = client.post("/api/v1/readings", json=body, headers=INGEST)
+    assert r.status_code == 422
+
+
+def test_ingest_bare_list_invalid_is_422():
+    # Buffer-flush shape (bare array, no wrapper)
+    body = {
+        "time": "2026-10-12T06:58:00+10:00",
+        "pulses": -1,
+        "kwh": 0.012,
+        "average_watts": 230.5,
+    }
+    r = client.post("/api/v1/readings", json=[body], headers=INGEST)
+    assert r.status_code == 422
+
+
 def test_query_requires_key():
     assert client.get("/api/v1/readings").status_code == 401
 

@@ -1,6 +1,6 @@
 [project]
 name = "powerpal-server"
-version = "0.1.0"
+version = "0.1.1"
 description = "FastAPI server receiving PowerPal power-usage readings and exposing a query API"
 requires-python = ">=3.12"
 

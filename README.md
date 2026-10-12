@@ -3,8 +3,8 @@
 FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
 (Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
 
-**Status:** v0.1.0 — scaffold complete, 13 tests passing. Local only; pushed to
-remote once Ben says go.
+**Status:** v0.1.1 — single-object immediate ingest; 20 tests passing. Local only;
+pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
 
@@ -35,12 +35,18 @@ Auth: `X-API-Key` header. Ingest and query use **separate keys**.
 
 ### `POST /api/v1/readings` — ingest (internal only)
 
-Batch, idempotent, returns 202. 1–1000 readings per call; unknown fields rejected.
+Immediate, idempotent, returns 202. Accepts any of three shapes — all validated
+identically (all fields mandatory, `>= 0`, unknown fields rejected, ISO 8601 with
+UTC offset):
+
+1. **Single reading object** — the normal case; bridge posts immediately (1/min)
+2. **Bare JSON array** — e.g. flushing the bridge's local buffer after an outage
+3. `{"readings": [...]}` — wrapped form, 1–1000 readings
 
 ```bash
 curl -X POST http://<server>:8000/api/v1/readings \
   -H "X-API-Key: $INGEST_API_KEY" -H "Content-Type: application/json" \
-  -d '{"readings":[{"time":"2026-10-12T16:58:00+11:00","pulses":12,"kwh":0.012,"average_watts":230.5}]}'
+  -d '{"time":"2026-10-12T16:58:00+11:00","pulses":12,"kwh":0.012,"average_watts":230.5}'
 # -> {"received": 1, "accepted": 1, "duplicates": 0}
 ```
 

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.reading import ReadingBatch, ReadingIn
+from app.schemas.reading import IngestPayload, ReadingIn
 
 
 def kwargs(**overrides):
@@ -48,6 +48,34 @@ def test_extra_field_rejected():
         ReadingIn(**kwargs(device="powerpal-1"))
 
 
-def test_empty_batch_rejected():
+def test_wrapped_form_accepted():
+    p = IngestPayload(readings=[kwargs()])
+    assert len(p.readings) == 1
+
+
+def test_single_object_accepted():
+    # Immediate post — the normal case at 1/min
+    p = IngestPayload(**kwargs())
+    assert len(p.readings) == 1
+    assert p.readings[0].pulses == 12
+
+
+def test_bare_list_accepted():
+    # Buffer flush after an outage
+    p = IngestPayload.model_validate([kwargs(), kwargs()])
+    assert len(p.readings) == 2
+
+
+def test_single_object_still_fully_validated():
     with pytest.raises(ValidationError):
-        ReadingBatch(readings=[])
+        IngestPayload(**kwargs(pulses=-1))
+
+
+def test_bare_list_with_bad_reading_rejected():
+    with pytest.raises(ValidationError):
+        IngestPayload.model_validate([kwargs(), kwargs(time="2026-10-12T06:58:00")])
+
+
+def test_empty_list_rejected():
+    with pytest.raises(ValidationError):
+        IngestPayload.model_validate([])

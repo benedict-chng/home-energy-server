@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ReadingIn(BaseModel):
@@ -23,10 +23,29 @@ class ReadingIn(BaseModel):
         return v.astimezone(timezone.utc)
 
 
-class ReadingBatch(BaseModel):
+class IngestPayload(BaseModel):
+    """Body for POST /api/v1/readings. Accepts any of:
+
+    - a single reading object  — immediate post, the normal case (1/min)
+    - a bare JSON list         — e.g. bridge flushing its buffer after an outage
+    - {"readings": [...]}      — wrapped form
+
+    All shapes normalise to the same validated list; extra="forbid" still
+    applies to each reading object via ReadingIn.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     readings: list[ReadingIn] = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_single_object_or_list(cls, data: object) -> object:
+        if isinstance(data, dict) and "readings" not in data:
+            return {"readings": [data]}
+        if isinstance(data, list):
+            return {"readings": data}
+        return data
 
 
 class ReadingOut(BaseModel):

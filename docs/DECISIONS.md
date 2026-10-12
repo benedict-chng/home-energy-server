@@ -37,7 +37,8 @@ Each decision: what we chose, why, and what we rejected.
 - Exactly four mandatory fields: `time` (timestamptz), `pulses` (integer), `kwh` (double precision), `average_watts` (double precision). Nothing added, nothing optional.
 - `time` is the primary key → ingest is idempotent (`ON CONFLICT DO NOTHING`); bridge retries after a network blip can't create duplicates.
 - Single-device design: no `device_id` column until a second meter actually exists. Revisit then.
-- API contract enforced in Pydantic: ISO 8601 **with UTC offset required** (naive timestamps → 422 — avoids silently misinterpreting Melbourne local time as UTC), stored normalised to UTC; all values `>= 0`; unknown fields rejected (catches bridge typos); batches of 1–1000.
+- API contract enforced in Pydantic: ISO 8601 **with UTC offset required** (naive timestamps → 422 — avoids silently misinterpreting Melbourne local time as UTC), stored normalised to UTC; all values `>= 0`; unknown fields rejected (catches bridge typos).
+- Request body accepts three shapes, all validated identically: a **single reading object** (primary — immediate post, 1/min, per Ben 17:14), a **bare JSON array** (buffer flush after an outage), or the wrapped `{"readings": [...]}` form; 1–1000 readings per request.
 
 ## D7 — Migrations: bootstrap SQL now, Alembic deferred
 
