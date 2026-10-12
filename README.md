@@ -3,7 +3,7 @@
 FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
 (Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
 
-**Status:** v0.1.2 — latest-reading endpoint; 22 tests passing. Local only;
+**Status:** v0.1.3 — from/to format documented + enforced; 24 tests passing. Local only;
 pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
@@ -54,6 +54,12 @@ curl -X POST http://<server>:8000/api/v1/readings \
 
 Params: `from`, `to` (from inclusive, to exclusive), `limit` (default 1000, max 10000),
 `offset`, `order` (`asc`/`desc`, default desc).
+
+`from`/`to` format: **ISO 8601 with explicit UTC offset** — e.g.
+`2026-10-12T00:00:00+11:00` (Melbourne) or `2026-10-12T00:00:00Z` (UTC).
+Naive timestamps (no offset) are rejected with 422, same rule as ingest.
+⚠️ In raw URLs `+` means space — URL-encode it (`%2B11:00`) or use `Z`, e.g.
+`curl -G --data-urlencode 'from=2026-10-12T00:00:00+11:00' ...`
 
 ```
 GET /api/v1/readings?from=2026-10-12T00:00:00+11:00&to=2026-10-13T00:00:00+11:00

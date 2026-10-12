@@ -84,3 +84,22 @@ def test_latest_requires_key():
 def test_latest_wrong_key():
     r = client.get("/api/v1/readings/latest", headers={"X-API-Key": "nope"})
     assert r.status_code == 401
+
+
+def test_readings_naive_from_is_422():
+    # Query params follow the same rule as ingest: explicit UTC offset required
+    r = client.get(
+        "/api/v1/readings",
+        params={"from": "2026-10-12T00:00:00"},
+        headers=QUERY,
+    )
+    assert r.status_code == 422
+
+
+def test_summary_naive_from_is_422():
+    r = client.get(
+        "/api/v1/readings/summary",
+        params={"from": "2026-10-12T00:00:00"},
+        headers=QUERY,
+    )
+    assert r.status_code == 422
