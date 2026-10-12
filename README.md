@@ -3,7 +3,7 @@
 FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
 (Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
 
-**Status:** v0.2.0 — solar (Fronius) + energy overview; 44 tests passing + live-tested. Local only;
+**Status:** v0.2.1 — solar two-field schema (Ben's correction); 45 tests passing + live-tested. Local only;
 pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
@@ -21,15 +21,15 @@ pushed to remote once Ben says go.
 - Timescale extras: hypertable, compression after 7 days, raw data kept 12 months,
   hourly continuous aggregate kept forever (`db/init/02_timescale.sql`).
 
-### Solar (Fronius) — separate `solar_readings` hypertable, same discipline
+### Solar (Fronius) — separate `solar_readings` hypertable, two fields (Ben, 18:28)
 
-| Column        | Type             | Notes                          |
-|---------------|------------------|--------------------------------|
-| `time`        | timestamptz (PK) | idempotency key; stored as UTC |
-| `power_watts` | double precision | ≥ 0, avg output in interval    |
-| `energy_kwh`  | double precision | ≥ 0, energy in interval        |
+| Column          | Type             | Notes                                 |
+|-----------------|------------------|---------------------------------------|
+| `time`          | timestamptz (PK) | idempotency key; stored as UTC        |
+| `average_watts` | double precision | ≥ 0, avg output in interval           |
 
-Own compression / 12-month retention / hourly continuous aggregate. Grid table
+Nothing else — posting extra fields (e.g. `energy_kwh`) is rejected with 422.
+Own compression / 12-month retention / hourly rollup (avg watts). Grid table
 untouched — the PowerPal bridge needs zero changes.
 
 ## Stack
@@ -90,10 +90,10 @@ averages watts per bucket (UTC). Uses Timescale's `time_bucket`.
 
 Same contract and three body shapes as grid, under `/api/v1/solar`:
 
-- `POST /api/v1/solar/readings` — ingest: `time`, `power_watts`, `energy_kwh` (all mandatory)
+- `POST /api/v1/solar/readings` — ingest: `time`, `average_watts` (both mandatory)
 - `GET /api/v1/solar/readings?from&to&limit&offset&order`
 - `GET /api/v1/solar/readings/latest`
-- `GET /api/v1/solar/readings/summary?bucket=1m|5m|15m|1h|1d` — sum kWh, avg watts
+- `GET /api/v1/solar/readings/summary?bucket=1m|5m|15m|1h|1d` — avg watts per bucket
 
 ### `GET /api/v1/energy/overview` — consumption vs generation (dashboard)
 
@@ -101,13 +101,14 @@ One call returns time-aligned buckets: `?from&to&bucket=1m|5m|15m|1h|1d`
 
 ```json
 {"bucket": "1h", "points": [{"bucket": "2026-10-12T07:00:00Z",
-  "consumed_kwh": 0.012, "generated_kwh": 0.24,
+  "consumed_kwh": 0.012,
   "avg_grid_watts": 230.5, "avg_solar_watts": 2450.5}]}
 ```
 
 Two `time_bucket` aggregations FULL OUTER JOINed on bucket — buckets where only
 one side has data still appear (other side: 0 kWh / null avg). Superimpose the
-two series straight from this response.
+two series straight from this response. Solar is watts-only per schema; grid
+keeps `consumed_kwh`.
 
 ### Ops
 

@@ -1,5 +1,6 @@
-"""Solar (Fronius) reading schemas. Same contract as grid: all fields mandatory,
-values >= 0, unknown fields rejected, naive timestamps rejected."""
+"""Solar (Fronius) reading schemas. Two fields only (Ben, 18:28): time +
+average_watts, both mandatory. Same contract as grid: values >= 0, unknown
+fields rejected, naive timestamps rejected."""
 
 from datetime import datetime
 
@@ -12,8 +13,7 @@ class SolarReadingIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     time: datetime
-    power_watts: float = Field(ge=0)
-    energy_kwh: float = Field(ge=0)
+    average_watts: float = Field(ge=0)
 
     @field_validator("time")
     @classmethod
@@ -39,8 +39,7 @@ class SolarReadingOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     time: datetime
-    power_watts: float
-    energy_kwh: float
+    average_watts: float
 
 
 class SolarPage(BaseModel):
@@ -50,7 +49,6 @@ class SolarPage(BaseModel):
 
 class SolarSummaryPoint(BaseModel):
     bucket: datetime
-    energy_kwh: float
     avg_watts: float
 
 

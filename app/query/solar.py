@@ -85,8 +85,7 @@ async def summarize_solar_readings(
     ).label("bucket")
     stmt = select(
         bucket_col,
-        func.sum(SolarReading.energy_kwh).label("energy_kwh"),
-        func.avg(SolarReading.power_watts).label("avg_watts"),
+        func.avg(SolarReading.average_watts).label("avg_watts"),
     )
     if from_:
         stmt = stmt.where(SolarReading.time >= from_)

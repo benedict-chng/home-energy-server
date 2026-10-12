@@ -109,8 +109,7 @@ def test_summary_naive_from_is_422():
 
 SOLAR = {
     "time": "2026-10-12T12:00:00+10:00",
-    "power_watts": 2450.5,
-    "energy_kwh": 0.24,
+    "average_watts": 2450.5,
 }
 
 
@@ -132,7 +131,17 @@ def test_solar_ingest_invalid_is_422():
 def test_solar_ingest_bare_list_invalid_is_422():
     r = client.post(
         "/api/v1/solar/readings",
-        json=[{**SOLAR, "energy_kwh": -1}],
+        json=[{**SOLAR, "average_watts": -1}],
+        headers=INGEST,
+    )
+    assert r.status_code == 422
+
+
+def test_solar_ingest_energy_kwh_rejected_as_extra():
+    # Ben's correction (18:28): solar is time + average_watts ONLY
+    r = client.post(
+        "/api/v1/solar/readings",
+        json={**SOLAR, "energy_kwh": 0.24},
         headers=INGEST,
     )
     assert r.status_code == 422

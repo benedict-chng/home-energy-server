@@ -29,10 +29,10 @@ Each decision: what we chose, why, and what we rejected.
 
 ## D8 — Solar (Fronius): separate table + endpoints + combined overview
 
-- `solar_readings` hypertable mirrors grid discipline: `time` (timestamptz PK → idempotent retries), `power_watts`, `energy_kwh` — all mandatory, `>= 0`, naive timestamps rejected. No `pulses` column — solar has none. Own compression / 12-month retention / hourly rollup.
+- `solar_readings` hypertable mirrors grid discipline: **two fields only (Ben, 18:28)** — `time` (timestamptz PK → idempotent retries), `average_watts` — all mandatory, `>= 0`, naive timestamps rejected. Posting `energy_kwh`/anything extra → 422. Own compression / 12-month retention / hourly rollup (avg watts).
 - Endpoints are **purely additive** under `/api/v1/solar/*` — the grid `/api/v1/readings*` contract is unchanged, so the existing PowerPal bridge needs zero changes (Ben's question, 18:14).
 - Same ingest/query API keys reused (both bridges live on the trusted LAN); per-source keys are a later option if he wants independent revocation.
-- `GET /api/v1/energy/overview` = two `time_bucket` aggregations FULL OUTER JOINed on bucket — one call feeds the dashboard's superimposed consumption/generation chart; self-consumption % falls out of the same data later.
+- `GET /api/v1/energy/overview` = two `time_bucket` aggregations FULL OUTER JOINed on bucket — one call feeds the dashboard's superimposed chart: `consumed_kwh` + `avg_grid_watts` (grid) vs `avg_solar_watts` (solar, watts-only schema). If solar kWh per bucket is ever needed it can be derived (avg_watts × bucket duration) or the schema extended.
 - Metering nuance: PowerPal reads net grid import (solar sits behind the meter), so midday the consumption line dips — the gap vs generation is self-consumed solar.
 
 ## D5 — Step documentation: this repo

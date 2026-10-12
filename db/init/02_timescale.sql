@@ -43,8 +43,7 @@ BEGIN
         CREATE MATERIALIZED VIEW IF NOT EXISTS solar_readings_hourly
         WITH (timescaledb.continuous) AS
         SELECT time_bucket(INTERVAL '1 hour', time) AS bucket,
-               sum(energy_kwh)                      AS energy_kwh,
-               avg(power_watts)                     AS avg_watts
+               avg(average_watts)                   AS avg_watts
         FROM solar_readings
         GROUP BY bucket
         WITH NO DATA;

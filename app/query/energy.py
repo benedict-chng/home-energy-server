@@ -32,19 +32,22 @@ async def energy_overview(
     Two time_bucket aggregations FULL OUTER JOINed on bucket, so buckets
     with only one side present still appear (the other side gets 0 kWh and
     a null avg). Buckets are UTC. Ideal for superimposing the two curves.
+
+    Solar is watts-only (two-field schema), so the solar series is
+    avg_solar_watts; grid keeps consumed_kwh + avg_grid_watts.
     """
     validate_range(from_, to)
     from_ = require_utc_offset("from", from_)
     to = require_utc_offset("to", to)
     interval = BUCKETS[bucket]
 
-    def aggregates(model, energy_col, watts_col, energy_label: str, watts_label: str):
+    def aggregates(model, watts_col, watts_label: str, energy_col=None, energy_label=None):
         b = func.time_bucket(cast(literal(interval), Interval()), model.time)
-        q = select(
-            b.label("bucket"),
-            func.sum(energy_col).label(energy_label),
-            func.avg(watts_col).label(watts_label),
-        )
+        cols = [b.label("bucket")]
+        if energy_col is not None:
+            cols.append(func.sum(energy_col).label(energy_label))
+        cols.append(func.avg(watts_col).label(watts_label))
+        q = select(*cols)
         if from_:
             q = q.where(model.time >= from_)
         if to:
@@ -52,22 +55,15 @@ async def energy_overview(
         return q.group_by(b).subquery()
 
     grid = aggregates(
-        Reading, Reading.kwh, Reading.average_watts, "consumed_kwh", "avg_grid_watts"
+        Reading, Reading.average_watts, "avg_grid_watts", Reading.kwh, "consumed_kwh"
     )
-    solar = aggregates(
-        SolarReading,
-        SolarReading.energy_kwh,
-        SolarReading.power_watts,
-        "generated_kwh",
-        "avg_solar_watts",
-    )
+    solar = aggregates(SolarReading, SolarReading.average_watts, "avg_solar_watts")
 
     bucket_col = func.coalesce(grid.c.bucket, solar.c.bucket)
     stmt = (
         select(
             bucket_col.label("bucket"),
             func.coalesce(grid.c.consumed_kwh, 0.0).label("consumed_kwh"),
-            func.coalesce(solar.c.generated_kwh, 0.0).label("generated_kwh"),
             grid.c.avg_grid_watts,
             solar.c.avg_solar_watts,
         )
@@ -82,7 +78,6 @@ async def energy_overview(
             EnergyOverviewPoint(
                 bucket=r.bucket,
                 consumed_kwh=r.consumed_kwh,
-                generated_kwh=r.generated_kwh,
                 avg_grid_watts=r.avg_grid_watts,
                 avg_solar_watts=r.avg_solar_watts,
             )

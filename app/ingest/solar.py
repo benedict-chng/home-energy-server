@@ -21,12 +21,13 @@ async def ingest_solar_readings(
     payload: SolarPayload,
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Insert solar readings. Same rules as grid: accepts a single object
-    (immediate post), a bare list (buffer flush), or {"readings": [...]};
-    duplicate `time` values are silently skipped so the bridge can retry
-    safely. Existing grid endpoints are untouched — this is additive."""
+    """Insert solar readings. Two fields: `time` + `average_watts` (Ben,
+    18:28). Same rules as grid: accepts a single object (immediate post),
+    a bare list (buffer flush), or {"readings": [...]}; duplicate `time`
+    values are silently skipped so the bridge can retry safely. Existing
+    grid endpoints are untouched — this is additive."""
     rows = [
-        {"time": r.time, "power_watts": r.power_watts, "energy_kwh": r.energy_kwh}
+        {"time": r.time, "average_watts": r.average_watts}
         for r in payload.readings
     ]
     return await insert_idempotent(session, SolarReading, rows)
