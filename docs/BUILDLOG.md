@@ -4,6 +4,8 @@ Dated log of every step taken on this project. Newest first.
 
 ## 2026-10-12 (afternoon)
 
+- **17:26 — `GET /api/v1/readings/latest` added (Ben's request):** returns just the most recent reading — no from/to/limit/order needed. 404 with a clear message when the DB is still empty. Query-key auth applies. Suite: **22 passed**. Committed as v0.1.2.
+
 - **17:14 — Ingest feedback from Ben:** he prefers immediate posting, not batching — it's only one reading per minute. Generalised `POST /api/v1/readings` to accept a **single JSON object** (now the documented primary mode), a **bare array** (outage catch-up), or the wrapped `{"readings": [...]}` form — one `IngestPayload` validator normalises all three, same validation and idempotency. New schema + API tests for each shape (incl. bad readings inside bare lists → 422): **20 passed**. Test-side gotchas fixed en route and worth remembering: `**` can't unpack a list, and Pydantic v2 `BaseModel.__init__` takes only kwargs — pass non-dict bodies via `Model.model_validate([...])`. Committed as v0.1.1.
 
 - **~17:00 — Schema received and locked in.** Ben's exact schema: `time` (datetime), `pulses` (int), `kwh` (float), `average_watts` (float); all four mandatory. Repo stays **local only** — Ben will push to remote himself at a stage of his choosing.

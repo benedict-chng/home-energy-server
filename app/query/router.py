@@ -48,6 +48,21 @@ async def list_readings(
     )
 
 
+@router.get("/readings/latest", response_model=ReadingOut)
+async def get_latest_reading(
+    session: AsyncSession = Depends(get_session),
+) -> ReadingOut:
+    """The single most recent reading. No params needed. 404 if DB is empty."""
+    row = (
+        (await session.execute(select(Reading).order_by(Reading.time.desc()).limit(1)))
+        .scalars()
+        .one_or_none()
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="no readings stored yet")
+    return ReadingOut.model_validate(row, from_attributes=True)
+
+
 @router.get("/readings/summary", response_model=SummaryPage)
 async def summarize_readings(
     session: AsyncSession = Depends(get_session),

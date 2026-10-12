@@ -3,7 +3,7 @@
 FastAPI server that receives home power-usage readings from a PowerPal BLE bridge
 (Raspberry Pi), stores them in Postgres/TimescaleDB, and exposes a query API.
 
-**Status:** v0.1.1 — single-object immediate ingest; 20 tests passing. Local only;
+**Status:** v0.1.2 — latest-reading endpoint; 22 tests passing. Local only;
 pushed to remote once Ben says go.
 
 ## Data schema (as specified, all fields mandatory)
@@ -58,6 +58,11 @@ Params: `from`, `to` (from inclusive, to exclusive), `limit` (default 1000, max 
 ```
 GET /api/v1/readings?from=2026-10-12T00:00:00+11:00&to=2026-10-13T00:00:00+11:00
 ```
+
+### `GET /api/v1/readings/latest` — most recent reading
+
+No params. Returns the single latest reading as an object; **404** if nothing
+stored yet.
 
 ### `GET /api/v1/readings/summary` — time-bucketed aggregates
 

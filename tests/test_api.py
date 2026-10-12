@@ -75,3 +75,12 @@ def test_query_requires_key():
 def test_query_wrong_key():
     r = client.get("/api/v1/readings", headers={"X-API-Key": "nope"})
     assert r.status_code == 401
+
+
+def test_latest_requires_key():
+    assert client.get("/api/v1/readings/latest").status_code == 401
+
+
+def test_latest_wrong_key():
+    r = client.get("/api/v1/readings/latest", headers={"X-API-Key": "nope"})
+    assert r.status_code == 401
