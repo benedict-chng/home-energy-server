@@ -4,6 +4,8 @@ Dated log of every step taken on this project. Newest first.
 
 ## 2026-10-12 (afternoon)
 
+- **19:16 — Remote set + pushed to GitHub (Ben supplied repo URL + PAT).** `origin` = github.com/benedict-chng/home-energy-server.git; PAT supplied via chat, embedded only in the remote URL inside local `.git/config` (never in any tracked file); pushed `main` with upstream tracking.
+
 - **19:08 — Project renamed: `powerpal-server` → `home-energy-server` (Ben's call) — v0.2.2.** It now ingests two sources, so the name generalised. Changed: directory, pyproject name/description, FastAPI title ("Home Energy Server"), DB user/db defaults (`homeenergy`) across compose + .env.example + config fallback + tests conftest, backup dump prefix (`home-energy-*.sql.gz`), example env var `POWERPAL_URL` → `ENERGY_SERVER_URL`. Kept: table names (`readings`, `solar_readings`), endpoint paths, device names (PowerPal, Fronius) where they describe data sources, and this log's historical entries. Venv recreated at the new path. Suite: **45 passed**. Committed as v0.2.2.
 
 - **18:28 — Solar schema correction (Ben): TWO fields only — `time` + `average_watts`.** Dropped `energy_kwh`/`power_watts` everywhere: model, schemas, ingest rows, solar summary (avg watts per bucket), Timescale init SQL + hourly rollup, and the energy overview (`generated_kwh` removed — solar is watts-only; grid keeps `consumed_kwh` + `avg_grid_watts`). Regression tests added: posting `energy_kwh` to solar → 422 (extra-field rejection). Suite: **45 passed**. Re-verified live against a fresh compose stack. Committed as v0.2.1.

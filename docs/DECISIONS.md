@@ -38,7 +38,7 @@ Each decision: what we chose, why, and what we rejected.
 ## D5 — Step documentation: this repo
 
 - Every step logged in `docs/BUILDLOG.md` (dated, newest first), decisions in this file, one logical commit per step.
-- Hosting: **local only for now** — Ben pushes to remote himself when the project reaches a stage he's happy with.
+- Hosting: GitHub at `benedict-chng/home-energy-server` — remote set and `main` pushed 19:16 after Ben's go-ahead (previously local-only; Ben judged the v0.2.2 stage push-ready). PAT lives in the remote URL inside local `.git/config` only.
 
 ## D9 — Project renamed: `powerpal-server` → `home-energy-server` (19:08)
 
